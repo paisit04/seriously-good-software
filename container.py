@@ -1,30 +1,35 @@
 class Container:
     def __init__(self):
-        self.g = {0:self}
-        self.n = 1
-        self.x = 0.0
+        self.group = set()
+        self.group.add(self)
+        self.amount = 0.0
     
     def get_amount(self):
-        return self.x
+        return self.amount
 
-    def add_water(self, x):
-        y = x / self.n
-        for i in range(self.n):
-            self.g[i].x = self.g[i].x + y
+    def add_water(self, amount):
+        amount_per_container = amount * 1.0 / len(self.group)
+        for c in self.group:
+            c.amount = c.amount + amount_per_container
 
-    def connect_to(self, c):
-        z = (self.x * self.n + c.x * c.n) / (self.n + c.n)
+    def connect_to(self, other):
+        diff = self.group.difference(other.group)
+        if len(diff) == 0:
+            return
 
-        for i in range(self.n): # for each container g[i] in first group
-            for j in range(c.n): # for each container c.g[j] in second group
-                self.g[i].g[self.n+j] = c.g[j]; # add second to group of first 
-                c.g[j].g[c.n+i] = self.g[i]; # add first to group of second
+        size1 = len(self.group)
+        size2 = len(other.group)
+        tot1 = self.amount * size1
+        tot2 = other.amount * size2
+        new_amount = (tot1 + tot2) / (size1 + size2)
 
-        self.n += c.n
+        self.group.update(other.group)
 
-        for i in range(self.n):
-            self.g[i].n = self.n
-            self.g[i].x = z
+        for c in other.group:
+            c.group = self.group
+
+        for c in self.group:
+            c.amount = new_amount
 
 if __name__ == "__main__":
     a = Container()
